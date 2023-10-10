@@ -1,63 +1,26 @@
-﻿using System.IO.Ports;
-using System.Text;
+﻿using Fun.LEGO.Spike;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
-const string STOP_PROGRAM = "\x03";
-const string START = "\x04";
-const string NEWLINE = "\r\n";
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
-using var port = new SerialPort {
-    NewLine = NEWLINE,
-    BaudRate = 115200,
-    PortName = "COM5",
-    Encoding = Encoding.UTF8
-};
+using var services = new ServiceCollection()
+    .AddLogging(builder => builder.AddSerilog(Log.Logger))
+    .Configure<HubReplOptions>(options => options.PortName = "COM5")
+    .AddSingleton<IHubRepl, HubRepl>()
+    .BuildServiceProvider();
 
-port.Open();
-port.WriteTimeout = 5000;
-port.RtsEnable = true;
-port.DtrEnable = true;
+var hub = services.GetRequiredService<IHubRepl>();
 
-var sendCode = (string code) => {
-    var codes = code.Split(Environment.NewLine).Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x));
-    foreach (var item in codes) {
-        if (item == STOP_PROGRAM) Console.WriteLine("SEND: " + nameof(STOP_PROGRAM));
-        else if (item == START) Console.WriteLine("SEND: " + nameof(START));
-        else Console.WriteLine("SEND: " + item);
+await hub.Connect();
 
-        port.WriteLine(item);
-    }
-};
+await hub.SendCode("import motor, device");
+await hub.SendCode("from hub import port");
 
-_ = Task.Run(() => {
-    while (true) {
-        try {
-            Console.WriteLine($"RECEIVE: {port.ReadLine()}");
-        }
-        catch (Exception ex) {
-            Console.WriteLine(ex);
-        }
-    }
-});
+Console.WriteLine(await hub.SendCodeAndWaitResult("motor.velocity(port.A)"));
+Console.WriteLine(await hub.SendCodeAndWaitResult("device.data(port.A)"));
 
-
-sendCode(STOP_PROGRAM);
-
-sendCode("import motor, time");
-sendCode("from hub import port");
-
-while (true) {
-    if (Console.ReadKey().KeyChar == 'w') {
-        sendCode("motor.run(port.A, 1000)");
-        await Task.Delay(1000);
-        sendCode("motor.velocity(port.A)");
-    }
-    else if (Console.ReadKey().KeyChar == 's') {
-        sendCode("motor.stop(port.A)");
-    }
-}
-
-// sendCommand("""{"i":"abc","m":"scratch.display_text","p":{"text":"hi"}\r\n}"""u8);
-
-
-// Console.WriteLine("Press Enter to exit ...");
-// Console.ReadLine();
+Console.WriteLine("Press Enter to exit ...");
+Console.ReadLine();

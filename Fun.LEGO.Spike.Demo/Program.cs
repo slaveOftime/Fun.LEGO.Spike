@@ -16,11 +16,32 @@ var hub = services.GetRequiredService<IHubRepl>();
 
 await hub.Connect();
 
-await hub.SendCode("import motor, device");
-await hub.SendCode("from hub import port");
+await hub.SendCode("""
+    def add(x):\
+        return x + 1
+    """);
 
-Console.WriteLine(await hub.SendCodeAndWaitResult("motor.velocity(port.A)"));
-Console.WriteLine(await hub.SendCodeAndWaitResult("device.data(port.A)"));
+Console.WriteLine(await hub.SendCodeAndWaitResult("add(1)"));
 
-Console.WriteLine("Press Enter to exit ...");
+
+await hub.InitMotorModule();
+
+var motorA = hub.LinkMotorToPort(HubPort.A);
+
+// await motorA.Run(100);
+// await Task.Delay(1000);
+// await motorA.Stop();
+
+
+await motorA.RunForTime(3000, 100);
+
+// await motorA.RunToAbsolutePosition(90, 100);
+// await motorA.RunToRelativePosition(10, 1000);
+
+// Console.WriteLine(await motorA.GetAbsolutePosition());
+// Console.WriteLine(await motorA.GetRelativePosition());
+// Console.WriteLine(await motorA.GetPWM());
+// Console.WriteLine(await motorA.GetVelocity());
+
+
 Console.ReadLine();

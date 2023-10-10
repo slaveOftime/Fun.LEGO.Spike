@@ -11,13 +11,18 @@ public interface IHubRepl : IDisposable {
     Task Connect();
     Task Disconnect();
 
+    /// <summary>
+    /// Send multiple code block to hub repl, the code block should use two whitespace for indent python code.
+    /// </summary>
+    /// <param name="codes"></param>
+    /// <returns></returns>
     Task SendCode(params string[] codes);
 
     /// <summary>
-    /// This will send a single line and wait for the related result, and only the first line of the actual result of be taken
+    /// This will send a single code block (should use two white space for indent) and wait for the related result, and only the first line of the actual result of be taken.
     /// </summary>
     /// <param name="code"></param>
-    /// <param name="cancellationInMs">Will use SendTimeoutMs from the HubOptions if not provided</param>
+    /// <param name="cancellationInMs"></param>
     /// <returns></returns>
     Task<string> SendCodeAndWaitResult(string code, int? cancellationInMs = null);
 
@@ -27,7 +32,7 @@ public interface IHubRepl : IDisposable {
 
 public class HubReplOptions {
     public string PortName { get; set; } = "";
-    public int SendTimeoutMs { get; set; } = 1000;
+    public int? SendTimeoutMs { get; set; }
 }
 
 public partial class HubRepl : IHubRepl {
@@ -66,15 +71,17 @@ public partial class HubRepl : IHubRepl {
             PortName = hubOption.PortName,
             Encoding = Encoding.UTF8,
             DtrEnable = true,
-            WriteTimeout = hubOption.SendTimeoutMs
         };
+
+        if (hubOption.SendTimeoutMs.HasValue)
+            port.WriteTimeout = hubOption.SendTimeoutMs.Value;
 
         readThread = new Thread(() => {
             while (!readCancellationTokenSource.IsCancellationRequested) {
                 try {
                     var line = port.ReadLine();
 
-                    logger.LogInformation($"{RECEIVE_PREFIX}{line}");
+                    logger.LogDebug($"{RECEIVE_PREFIX}{line}");
 
                     var match = identifyResultRegex.Match(line);
                     if (match.Success) {
@@ -94,6 +101,7 @@ public partial class HubRepl : IHubRepl {
         port.Open();
         readThread.Start();
         await SendCode(STOP_PROGRAM);
+        await SetHelperFunctions();
     }
 
     public Task Disconnect() {
@@ -105,9 +113,9 @@ public partial class HubRepl : IHubRepl {
     public async Task SendCode(params string[] codes) {
         foreach (var code in codes) {
             switch (code) {
-                case START: logger.LogInformation(SEND_PREFIX + nameof(START)); break;
-                case STOP_PROGRAM: logger.LogInformation(SEND_PREFIX + nameof(STOP_PROGRAM)); break;
-                default: logger.LogInformation(SEND_PREFIX + code); break;
+                case START: logger.LogDebug(SEND_PREFIX + nameof(START)); break;
+                case STOP_PROGRAM: logger.LogDebug(SEND_PREFIX + nameof(STOP_PROGRAM)); break;
+                default: logger.LogDebug(SEND_PREFIX + code); break;
             }
             await Task.Run(() => {
                 lock (sendLocker) {
@@ -130,7 +138,7 @@ public partial class HubRepl : IHubRepl {
         var result = new TaskCompletionSource<string>();
         identifyResults[id] = result;
 
-        using var cts = new CancellationTokenSource(cancellationInMs ?? hubOption.SendTimeoutMs);
+        using var cts = new CancellationTokenSource(cancellationInMs ?? -1);
         cts.Token.Register(() => {
             identifyResults.TryRemove(id, out var _);
             result.SetCanceled();
@@ -153,5 +161,20 @@ public partial class HubRepl : IHubRepl {
         }
         catch (Exception) {
         }
+    }
+
+
+    private async Task SetHelperFunctions() {
+        await SendCode("import runloop");
+        await SendCode("""
+            async def async_wrapper(result, x):
+              result.append(await x)
+            """);
+        await SendCode("""
+            def run_until_complete(x):
+              result = []
+              runloop.run(async_wrapper(result, x))
+              return result[0][0]
+            """);
     }
 }

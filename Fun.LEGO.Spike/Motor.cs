@@ -19,8 +19,8 @@ public class Motor {
     /// Change the position used as the offset 
     /// </summary>
     /// <param name="position">The degree of the motor</param>
-    public async Task<int> ResetRelativePosition(int position) =>
-        int.Parse(await hubRepl.SendCodeAndWaitResult($"motor.reset_relative_position({(int)hubPort}, {position})"));
+    public async Task ResetRelativePosition(int position) =>
+        await hubRepl.SendCodeAndWaitResult($"motor.reset_relative_position({(int)hubPort}, {position})");
 
 
     /// <summary>
@@ -68,8 +68,8 @@ public class Motor {
     /// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <returns></returns>
-    public Task RunForDegree(int degrees, int velocity, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
-        hubRepl.SendCodeAndWaitResult($"asyncio.run_until_complete(motor.run_for_degrees({(int)hubPort}, {degrees}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration}))");
+    public async Task<MotorState> RunForDegree(int degrees, int velocity, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
+        ParseMotorState(await hubRepl.SendCodeAndWaitResult($"run_until_complete(motor.run_for_degrees({(int)hubPort}, {degrees}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration}))"));
 
     /// <summary>
     /// Turn a motor for a specific number of ms
@@ -86,8 +86,8 @@ public class Motor {
     /// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <returns></returns>
-    public Task RunForTime(int duration, int velocity, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
-        hubRepl.SendCodeAndWaitResult($"asyncio.run_until_complete(motor.run_for_time({(int)hubPort}, {duration}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration}))");
+    public async Task<MotorState> RunForTime(int duration, int velocity, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
+        ParseMotorState(await hubRepl.SendCodeAndWaitResult($"run_until_complete(motor.run_for_time({(int)hubPort}, {duration}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration}))"));
 
     /// <summary>
     /// Turn a motor to an absolute position
@@ -105,8 +105,8 @@ public class Motor {
     /// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <returns></returns>
-    public Task RunToAbsolutePosition(int position, int velocity, MotorDirection direction = MotorDirection.CLOCKWISE, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
-        hubRepl.SendCode($"motor.run_to_absolute_position({(int)hubPort}, {position}, {velocity}, direction = {(int)direction}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
+    public async Task<MotorState> RunToAbsolutePosition(int position, int velocity, MotorDirection direction = MotorDirection.CLOCKWISE, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
+        ParseMotorState(await hubRepl.SendCodeAndWaitResult($"run_until_complete(motor.run_to_absolute_position({(int)hubPort}, {position}, {velocity}, direction = {(int)direction}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})"));
 
     /// <summary>
     /// Turn a motor to an relative position
@@ -123,8 +123,10 @@ public class Motor {
     /// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
     /// <returns></returns>
-    public Task RunToRelativePosition(int position, int velocity, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
-        hubRepl.SendCode($"motor.run_to_relative_position({(int)hubPort}, {position}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
+    public async Task<MotorState> RunToRelativePosition(int position, int velocity, MotorStop stop = MotorStop.BREAK, int acceleration = 1000, int deceleration = 1000) =>
+        ParseMotorState(await hubRepl.SendCodeAndWaitResult($"run_until_complete(motor.run_to_relative_position({(int)hubPort}, {position}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})"));
+
+    private MotorState ParseMotorState(string value) => (MotorState)int.Parse(value);
 }
 
 public enum MotorStop {
@@ -159,4 +161,12 @@ public enum MotorDirection {
     COUNTERCLOCKWISE = 1,
     SHORTEST_PATH = 2,
     LONGEST_PATH = 3,
+}
+
+public enum MotorState {
+    READY = 0,
+    RUNNING = 1,
+    STALLED = 2,
+    ERROR = 3,
+    DISCONNECTED = 4,
 }

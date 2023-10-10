@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Fun.LEGO.Spike;
 
-interface IHubRepl : IDisposable {
+public interface IHubRepl : IDisposable {
     Task Connect();
     Task Disconnect();
     
@@ -22,11 +22,12 @@ interface IHubRepl : IDisposable {
     Task<string> SendCodeAndWaitResult(string code, int cancellationInMs = 1000);
 }
 
-class HubReplOptions {
+public class HubReplOptions {
     public string PortName { get; set; } = "";
+    public int SendTimeoutMs { get; set; } = 1000;
 }
 
-partial class HubRepl : IHubRepl {
+public partial class HubRepl : IHubRepl {
 
     public const string STOP_PROGRAM = "\x03";
     public const string START = "\x04";
@@ -61,7 +62,7 @@ partial class HubRepl : IHubRepl {
             PortName = hubOption.PortName,
             Encoding = Encoding.UTF8,
             DtrEnable = true,
-            WriteTimeout = 1000
+            WriteTimeout = hubOption.SendTimeoutMs
         };
 
         readThread = new Thread(() => {

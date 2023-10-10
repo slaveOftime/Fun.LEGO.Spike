@@ -1,25 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.5.002.0
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fun.LEGO.Spike", "Fun.LEGO.Spike.csproj", "{5EB1B8D2-568C-4D11-8AB3-0487E406EC77}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fun.LEGO.Spike", "Fun.LEGO.Spike\Fun.LEGO.Spike.csproj", "{61828470-61AB-4980-A91B-F0281F99FC82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fun.LEGO.Spike.Demo", "Fun.LEGO.Spike.Demo\Fun.LEGO.Spike.Demo.csproj", "{3A96778A-A0D2-4C7A-9E03-2DD428FA41BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5EB1B8D2-568C-4D11-8AB3-0487E406EC77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5EB1B8D2-568C-4D11-8AB3-0487E406EC77}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5EB1B8D2-568C-4D11-8AB3-0487E406EC77}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5EB1B8D2-568C-4D11-8AB3-0487E406EC77}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D2979FCD-DD7D-45FE-AA07-E328FD2C28A6}
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{61828470-61AB-4980-A91B-F0281F99FC82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61828470-61AB-4980-A91B-F0281F99FC82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61828470-61AB-4980-A91B-F0281F99FC82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61828470-61AB-4980-A91B-F0281F99FC82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A96778A-A0D2-4C7A-9E03-2DD428FA41BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A96778A-A0D2-4C7A-9E03-2DD428FA41BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A96778A-A0D2-4C7A-9E03-2DD428FA41BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A96778A-A0D2-4C7A-9E03-2DD428FA41BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,27 @@
+name: publish to nuget
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - CHANGELOG.md
+    
+jobs:
+  build:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.x
+
+    - name: publish
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        GITHUB_ACTION:
+      run: dotnet fsi ./build.fsx -- -p publish

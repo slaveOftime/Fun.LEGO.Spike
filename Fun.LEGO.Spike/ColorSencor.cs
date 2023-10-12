@@ -26,16 +26,15 @@ public class ColorSencor {
 	/// </summary>
 	public async Task<(byte red, byte blue, byte gree, ushort indensity)> GetRgbi() {
 		var result = await hubRepl.SendCodeAndWaitResult($"color_sensor.rgbi({(int)hubPort})");
-		var span = result.AsMemory();
 
 		var index1 = result.IndexOf(",");
 		var index2 = result.IndexOf(",", index1 + 1);
 		var index3 = result.IndexOf(",", index2 + 1);
 
-		var red = byte.Parse(result.Substring(1, index1 - 1));
-		var green = byte.Parse(result.Substring(index1 + 2, index2 - index1 - 2));
-		var blue = byte.Parse(result.Substring(index2 + 2, index3 - index2 - 2));
-		var indensity = ushort.Parse(result.Substring(index3 + 2, span.Length - index3 - 3));
+		var red = byte.Parse(result.AsSpan().Slice(1, index1 - 1));
+		var green = byte.Parse(result.AsSpan().Slice(index1 + 2, index2 - index1 - 2));
+		var blue = byte.Parse(result.AsSpan().Slice(index2 + 2, index3 - index2 - 2));
+		var indensity = ushort.Parse(result.AsSpan().Slice(index3 + 2, result.Length - index3 - 3));
 
 		return (red, blue, green, indensity);
 	}

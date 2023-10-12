@@ -100,4 +100,16 @@ await motorAB.Unpair();
 
 Console.WriteLine("=============================");
 
+var colorSensor = new ColorSencor(hub, HubPort.C);
+
+Console.WriteLine("color = {0}", await colorSensor.GetColor());
+Console.WriteLine("rgbi = {0}", await colorSensor.GetRgbi());
+
+for (int i = 0; i < 50; i++) {
+	Console.WriteLine("reflection = {0}", await colorSensor.GetReflection());
+	await Task.Delay(100);
+}
+
+Console.WriteLine("=============================");
+
 Console.ReadLine();

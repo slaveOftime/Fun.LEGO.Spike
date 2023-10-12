@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
-	.MinimumLevel.Information()
+	.MinimumLevel.Debug()
 	.WriteTo.Console()
 	.CreateLogger();
 
@@ -59,11 +59,13 @@ while (true) {
 
 Console.WriteLine("=============================");
 
+
+
 Console.WriteLine("pair motor A B");
 var motorAB = await hub.PairMotor(HubPort.A, HubPort.B);
 
 Console.WriteLine("move for 2 sec");
-await motorAB.Move(50);
+await motorAB.Move(0);
 await Task.Delay(2000);
 
 Console.WriteLine("stop for 1 sec");
@@ -72,11 +74,11 @@ await Task.Delay(1000);
 
 
 Console.WriteLine("move 300 degree for 2 sec");
-await motorAB.MoveForDegree(300, 50);
+await motorAB.MoveForDegree(300, 0);
 await Task.Delay(2000);
 
 Console.WriteLine("move for 2 sec");
-await motorAB.MoveForTime(2000, 50);
+await motorAB.MoveForTime(2000, 10);
 await Task.Delay(2000);
 
 
@@ -91,7 +93,7 @@ await Task.Delay(2000);
 
 
 Console.WriteLine("move tank for 2 sec");
-await motorAB.MoveTankForTime(2000, 100, -100);
+await motorAB.MoveTankForTime(2000, 1000, 2000);
 await Task.Delay(2000);
 
 

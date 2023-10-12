@@ -151,24 +151,10 @@ public partial class HubRepl : IHubRepl {
 	}
 
 
-	private SemaphoreSlim motorModuleInitLocker = new(0);
-	private bool isMotorModuleInited = false;
-	private Task InitMotorModule() => SendCode("import motor, motor_pair");
-
-
-	public async Task<Motor> LinkMotorToPort(HubPort port) {
-		await motorModuleInitLocker.WaitAsync();
-		if (!isMotorModuleInited) await InitMotorModule();
-		motorModuleInitLocker.Release();
-
-		return motors.GetOrAdd(port, _ => new Motor(this, port));
-	}
+	public Task<Motor> LinkMotorToPort(HubPort port) =>
+		Task.FromResult(motors.GetOrAdd(port, _ => new Motor(this, port)));
 
 	public async Task<MotorPair> PairMotor(HubPort leftMotor, HubPort rightMotor) {
-		await motorModuleInitLocker.WaitAsync();
-		if (!isMotorModuleInited) await InitMotorModule();
-		motorModuleInitLocker.Release();
-
 		var pair = motorPairs.GetOrAdd((leftMotor, rightMotor), _ => {
 			foreach (var pair in motorPairs.Where(x => !x.Value.IsPaired)) {
 				motorPairs.Remove(pair.Key, out var _);
@@ -208,16 +194,22 @@ public partial class HubRepl : IHubRepl {
 
 
 	private async Task SetHelperFunctions() {
+		await SendCode("from hub import light_matrix");
+
+		await SendCode("import color_sensor");
+
+		await SendCode("import motor, motor_pair");
+
 		await SendCode("""
-            import runloop
+			import runloop
 
-            async def async_wrapper(result, x):
-                result.append(await x)
+			async def async_wrapper(result, x):
+			    result.append(await x)
 
-            def run_until_complete(x):
-                result = []
-                runloop.run(async_wrapper(result, x))
-                return result[0][0]
-            """);
+			def run_until_complete(x):
+			    result = []
+			    runloop.run(async_wrapper(result, x))
+			    return result[0][0]
+			""");
 	}
 }

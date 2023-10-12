@@ -102,13 +102,43 @@ Console.WriteLine("=============================");
 
 var colorSensor = new ColorSencor(hub, HubPort.C);
 
-Console.WriteLine("color = {0}", await colorSensor.GetColor());
-Console.WriteLine("rgbi = {0}", await colorSensor.GetRgbi());
-
-for (int i = 0; i < 50; i++) {
-	Console.WriteLine("reflection = {0}", await colorSensor.GetReflection());
-	await Task.Delay(100);
+for (int i = 0; i < 10; i++) {
+	Console.WriteLine("color = {0}", await colorSensor.GetColor());
+	Console.WriteLine("rgbi = {0}", await colorSensor.GetRgbi());
+	await Task.Delay(500);
 }
+
+for (int i = 0; i < 10; i++) {
+	Console.WriteLine("reflection = {0}", await colorSensor.GetReflection());
+	await Task.Delay(500);
+}
+
+Console.WriteLine("=============================");
+
+var lightMatrix = new LightMatrix(hub);
+
+Console.WriteLine("set left as top");
+await lightMatrix.SetOrientation(LightMatrixOrientation.LEFT);
+
+Console.WriteLine("get orientation");
+Console.WriteLine(await lightMatrix.GetOrientation());
+
+Console.WriteLine("show butterfly");
+await lightMatrix.Show(LightMatrixImage.IMAGE_BUTTERFLY);
+await Task.Delay(2000);
+
+await lightMatrix.Clear();
+
+Console.WriteLine("loop set pixel");
+for (byte x = 0; x < 5; x++) {
+	for (byte y = 0; y < 5; y++) {
+		await lightMatrix.SetPixel(x, y, (byte)(100 - x * y * 100 / 25));
+		await Task.Delay(200);
+	}
+}
+
+Console.WriteLine("write text");
+await lightMatrix.Write("hi you are ?");
 
 Console.WriteLine("=============================");
 

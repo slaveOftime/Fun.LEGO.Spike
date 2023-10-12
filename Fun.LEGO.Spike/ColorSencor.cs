@@ -24,7 +24,7 @@ public class ColorSencor {
 	/// <summary>
 	/// Retrieves the overall colour intensity and intensity of red, green and blue.
 	/// </summary>
-	public async Task<(byte red, byte blue, byte gree, byte indensity)> GetRgbi() {
+	public async Task<(byte red, byte blue, byte gree, ushort indensity)> GetRgbi() {
 		var result = await hubRepl.SendCodeAndWaitResult($"color_sensor.rgbi({(int)hubPort})");
 		var span = result.AsMemory();
 
@@ -32,16 +32,13 @@ public class ColorSencor {
 		var index2 = result.IndexOf(",", index1 + 1);
 		var index3 = result.IndexOf(",", index2 + 1);
 
-		var red = Convert.ToByte(span.Slice(1, index1));
-		var green = Convert.ToByte(span.Slice(index1 + 1, index2));
-		var blue = Convert.ToByte(span.Slice(index2 + 1, index3));
-		var indensity = Convert.ToByte(span.Slice(index3 + 1, span.Length - 1));
+		var red = byte.Parse(result.Substring(1, index1 - 1));
+		var green = byte.Parse(result.Substring(index1 + 2, index2 - index1 - 2));
+		var blue = byte.Parse(result.Substring(index2 + 2, index3 - index2 - 2));
+		var indensity = ushort.Parse(result.Substring(index3 + 2, span.Length - index3 - 3));
 
 		return (red, blue, green, indensity);
 	}
-
-
-
 }
 
 public enum Color {

@@ -31,7 +31,7 @@ public class ColorSencor {
 		var index2 = result.IndexOf(",", index1 + 1);
 		var index3 = result.IndexOf(",", index2 + 1);
 
-		var red = byte.Parse(result.AsSpan().Slice(1, index1 - 1));
+		var red = byte.Parse(result.AsSpan()[1..index1]);
 		var green = byte.Parse(result.AsSpan().Slice(index1 + 2, index2 - index1 - 2));
 		var blue = byte.Parse(result.AsSpan().Slice(index2 + 2, index3 - index2 - 2));
 		var indensity = ushort.Parse(result.AsSpan().Slice(index3 + 2, result.Length - index3 - 3));

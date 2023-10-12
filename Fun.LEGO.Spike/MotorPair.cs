@@ -14,7 +14,7 @@ public class MotorPair {
 
 
 	public Task Stop(MotorStop stop = MotorStop.BREAK) =>
-		hubRepl.SendCodeAndWaitResult($"motor_pair.stop({(int)pair}, stop: int = {stop})");
+		hubRepl.SendCodeAndWaitResult($"motor_pair.stop({(int)pair}, stop = {(int)stop})");
 
 	public async Task Unpair() {
 		await hubRepl.SendCodeAndWaitResult($"motor_pair.unpair({(int)pair})");
@@ -35,7 +35,7 @@ public class MotorPair {
 	/// </param>
 	/// <param name="acceleration">degree/sec^2 0-10000</param>
 	public Task Move(byte steering, short velocity = 360, ushort acceleration = 1000) =>
-		hubRepl.SendCode($"motor_pair.move({(int)pair}, {steering}, {velocity}, acceleration = {acceleration})");
+		hubRepl.SendCode($"motor_pair.move({(int)pair}, {steering}, velocity = {velocity}, acceleration = {acceleration})");
 
 	/// <summary>
 	/// Move a Motor Pair at a constant speed for a specific number of degrees.
@@ -53,7 +53,7 @@ public class MotorPair {
 	/// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
 	/// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
 	public Task MoveForDegree(int degrees, byte steering, short velocity = 360, MotorStop stop = MotorStop.BREAK, ushort acceleration = 1000, ushort deceleration = 1000) =>
-		hubRepl.SendCode($"motor_pair.move_for_degrees({(int)pair}, {degrees},{steering}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
+		hubRepl.SendCode($"motor_pair.move_for_degrees({(int)pair}, {degrees},{steering}, velocity = {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
 
 	/// <summary>
 	/// Move a Motor Pair at a constant speed for a specific duration.
@@ -71,16 +71,16 @@ public class MotorPair {
 	/// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
 	/// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
 	public Task MoveForTime(int duration, byte steering, short velocity = 360, MotorStop stop = MotorStop.BREAK, ushort acceleration = 1000, ushort deceleration = 1000) =>
-		hubRepl.SendCode($"motor_pair.move_for_time({(int)pair}, {duration}, {steering}, {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
+		hubRepl.SendCode($"motor_pair.move_for_time({(int)pair}, {duration}, {steering}, velocity = {velocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
 
 	/// <summary>
 	/// Perform a tank move on a Motor Pair at a constant speed until a new command is given.
 	/// </summary>
 	/// <param name="leftVelocity">The velocity (deg/sec) of the left motor.</param>
 	/// <param name="rightVelocity">The velocity (deg/sec) of the right motor.</param>
-	/// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
-	public Task MoveTank(int leftVelocity, int rightVelocity, ushort deceleration = 1000) =>
-		hubRepl.SendCode($"motor_pair.move_tank({(int)pair}, {leftVelocity}, {rightVelocity}, deceleration = {deceleration})");
+	/// <param name="acceleration">The acceleration (deg/sec²) (0 - 10000)</param>
+	public Task MoveTank(int leftVelocity, int rightVelocity, ushort acceleration = 1000) =>
+		hubRepl.SendCode($"motor_pair.move_tank({(int)pair}, {leftVelocity}, {rightVelocity}, acceleration = {acceleration})");
 
 	/// <summary>
 	/// Move a Motor Pair at a constant speed for a specific number of degrees.

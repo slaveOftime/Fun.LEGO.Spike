@@ -170,7 +170,8 @@ public partial class HubRepl : IHubRepl {
 
 		if (!pair.IsPaired) {
 			try {
-				await SendCodeAndWaitResult($"motor_pair.pair({(int)pair.Pair}, {(int)leftMotor}, {(int)rightMotor})");
+				await SendCode($"motor_pair.unpair({(int)pair.Pair})");
+				await SendCode($"motor_pair.pair({(int)pair.Pair}, {(int)leftMotor}, {(int)rightMotor})");
 				pair.IsPaired = true;
 			}
 			catch (Exception) {

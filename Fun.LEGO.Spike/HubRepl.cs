@@ -25,9 +25,6 @@ public interface IHubRepl : IDisposable {
 	/// <param name="cancellationInMs"></param>
 	/// <returns></returns>
 	Task<string> SendCodeAndWaitResult(string code, int? cancellationInMs = null);
-
-	Task<Motor> LinkMotorToPort(HubPort port);
-	Task<MotorPair> PairMotor(HubPort leftMotor, HubPort rightMotor);
 }
 
 public class HubReplOptions {
@@ -63,8 +60,6 @@ public partial class HubRepl : IHubRepl {
 
 	private readonly Regex identifyResultRegex = IdentifyResultRegex();
 	private readonly ConcurrentDictionary<int, TaskCompletionSource<string>> identifyResults = new();
-	private readonly ConcurrentDictionary<HubPort, Motor> motors = new();
-	private readonly ConcurrentDictionary<(HubPort leftMotor, HubPort rightMotor), MotorPair> motorPairs = new();
 
 	public HubRepl(IOptions<HubReplOptions> option, ILogger<HubRepl> logger) {
 		hubOption = option.Value;
@@ -106,7 +101,10 @@ public partial class HubRepl : IHubRepl {
 		port.Open();
 		readThread.Start();
 		await SendCode(CTRL_C);
-		await SetHelperFunctions();
+
+		await SendCode("from hub import light_matrix");
+		await SendCode("import color_sensor");
+		await SendCode("import motor, motor_pair");
 	}
 
 	public Task Disconnect() {
@@ -151,38 +149,6 @@ public partial class HubRepl : IHubRepl {
 	}
 
 
-	public Task<Motor> LinkMotorToPort(HubPort port) =>
-		Task.FromResult(motors.GetOrAdd(port, _ => new Motor(this, port)));
-
-	public async Task<MotorPair> PairMotor(HubPort leftMotor, HubPort rightMotor) {
-		var pair = motorPairs.GetOrAdd((leftMotor, rightMotor), _ => {
-			foreach (var pair in motorPairs.Where(x => !x.Value.IsPaired)) {
-				motorPairs.Remove(pair.Key, out var _);
-			}
-
-			if (motorPairs.Count >= Enum.GetNames(typeof(MotorPairs)).Length)
-				throw new Exception("Only support 3 pair at the same time maxium");
-
-			var availablePair = Enum.GetValues<MotorPairs>().First(x => !motorPairs.Any(p => p.Value.Pair == x));
-
-			return new MotorPair(this, availablePair);
-		});
-
-		if (!pair.IsPaired) {
-			try {
-				await SendCode($"motor_pair.unpair({(int)pair.Pair})");
-				await SendCode($"motor_pair.pair({(int)pair.Pair}, {(int)leftMotor}, {(int)rightMotor})");
-				pair.IsPaired = true;
-			}
-			catch (Exception) {
-				motorPairs.Remove((leftMotor, rightMotor), out var _);
-				throw;
-			}
-		}
-
-		return pair;
-	}
-
 	public void Dispose() {
 		GC.SuppressFinalize(this);
 
@@ -191,26 +157,5 @@ public partial class HubRepl : IHubRepl {
 		}
 		catch (Exception) {
 		}
-	}
-
-
-	private async Task SetHelperFunctions() {
-		await SendCode("from hub import light_matrix");
-
-		await SendCode("import color_sensor");
-
-		await SendCode("import motor, motor_pair");
-
-		await SendCode("""
-			import runloop
-
-			async def async_wrapper(result, x):
-			    result.append(await x)
-
-			def run_until_complete(x):
-			    result = []
-			    runloop.run(async_wrapper(result, x))
-			    return result[0][0]
-			""");
 	}
 }

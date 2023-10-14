@@ -17,7 +17,7 @@ var hub = services.GetRequiredService<IHubRepl>();
 
 await hub.Connect();
 
-var motorA = await hub.LinkMotorToPort(HubPort.A);
+var motorA = new Motor(hub, HubPort.A);
 
 Console.WriteLine("run in 100 degree/sec for 1 sec");
 await motorA.Run(100);
@@ -60,45 +60,45 @@ while (true) {
 Console.WriteLine("=============================");
 
 
-
 Console.WriteLine("pair motor A B");
-var motorAB = await hub.PairMotor(HubPort.A, HubPort.B);
+await using var motorPair1 = new MotorPair(hub, MotorPairs.PAIR_1);
+await motorPair1.Pair(HubPort.A, HubPort.B);
 
 Console.WriteLine("move for 2 sec");
-await motorAB.Move(0);
+await motorPair1.Move(0);
 await Task.Delay(2000);
 
 Console.WriteLine("stop for 1 sec");
-await motorAB.Stop();
+await motorPair1.Stop();
 await Task.Delay(1000);
 
 
 Console.WriteLine("move 300 degree for 2 sec");
-await motorAB.MoveForDegree(300, 0);
+await motorPair1.MoveForDegree(300, 0);
 await Task.Delay(2000);
 
 Console.WriteLine("move for 2 sec");
-await motorAB.MoveForTime(2000, 10);
+await motorPair1.MoveForTime(2000, 10);
 await Task.Delay(2000);
 
 
 Console.WriteLine("move tank 100, 200 for 2 sec");
-await motorAB.MoveTank(100, 200);
+await motorPair1.MoveTank(100, 200);
 await Task.Delay(2000);
 
 
 Console.WriteLine("move tank -300 degree for 2 sec");
-await motorAB.MoveTankForDegree(-300, 100, -100);
+await motorPair1.MoveTankForDegree(-300, 100, -100);
 await Task.Delay(2000);
 
 
 Console.WriteLine("move tank for 2 sec");
-await motorAB.MoveTankForTime(2000, 1000, 2000);
+await motorPair1.MoveTankForTime(2000, 1000, 2000);
 await Task.Delay(2000);
 
 
 Console.WriteLine("unpair");
-await motorAB.Unpair();
+await motorPair1.Unpair();
 
 Console.WriteLine("=============================");
 

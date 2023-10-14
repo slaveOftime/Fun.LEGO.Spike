@@ -1,6 +1,6 @@
 namespace Fun.LEGO.Spike;
 
-public class MotorPair {
+public class MotorPair : IAsyncDisposable {
 	private readonly IHubRepl hubRepl;
 	private readonly MotorPairs pair;
 
@@ -9,12 +9,17 @@ public class MotorPair {
 		this.pair = pair;
 	}
 
-	public MotorPairs Pair => pair;
 	public bool IsPaired { get; internal set; }
 
 
 	public Task Stop(MotorStop stop = MotorStop.BREAK) =>
 		hubRepl.SendCodeAndWaitResult($"motor_pair.stop({(int)pair}, stop = {(int)stop})");
+
+
+	public async Task Pair(HubPort leftMotor, HubPort rightMotor) {
+		await hubRepl.SendCode($"motor_pair.unpair({(int)pair})");
+		await hubRepl.SendCode($"motor_pair.pair({(int)pair}, {(int)leftMotor}, {(int)rightMotor})");
+	}
 
 	public async Task Unpair() {
 		await hubRepl.SendCodeAndWaitResult($"motor_pair.unpair({(int)pair})");
@@ -105,6 +110,11 @@ public class MotorPair {
 	/// <param name="deceleration">The acceleration (deg/sec²) (0 - 10000)</param>
 	public Task MoveTankForTime(int duration, int leftVelocity, int rightVelocity, MotorStop stop = MotorStop.BREAK, ushort acceleration = 1000, ushort deceleration = 1000) =>
 		hubRepl.SendCode($"motor_pair.move_tank_for_time({(int)pair}, {duration}, {leftVelocity}, {rightVelocity}, stop = {(int)stop}, acceleration = {acceleration}, deceleration = {deceleration})");
+
+	public async ValueTask DisposeAsync() {
+		GC.SuppressFinalize(this);
+		await hubRepl.SendCode($"motor_pair.unpair({(int)pair})");
+	}
 }
 
 public enum MotorPairs {

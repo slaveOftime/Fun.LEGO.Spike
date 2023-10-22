@@ -23,5 +23,4 @@ jobs:
     - name: publish
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        GITHUB_ACTION:
       run: dotnet fsi ./build.fsx -- -p publish

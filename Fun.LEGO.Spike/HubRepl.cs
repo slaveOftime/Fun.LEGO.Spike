@@ -8,7 +8,12 @@ using Microsoft.Extensions.Options;
 namespace Fun.LEGO.Spike;
 
 public interface IHubRepl : IDisposable {
-	Task Connect();
+	/// <summary>
+	/// Open serial port and import related modules for hub
+	/// </summary>
+	/// <param name="autoRetry">If true then it will try catch port related exception and try to open it again</param>
+	/// <returns></returns>
+	Task Connect(bool autoRetry = false);
 	Task Disconnect();
 
 	/// <summary>
@@ -30,6 +35,7 @@ public interface IHubRepl : IDisposable {
 public class HubReplOptions {
 	public string PortName { get; set; } = "";
 	public int? SendTimeoutMs { get; set; }
+	public int RetryDelayMs { get; set; } = 3000;
 }
 
 public partial class HubRepl : IHubRepl {
@@ -76,11 +82,10 @@ public partial class HubRepl : IHubRepl {
 		if (hubOption.SendTimeoutMs.HasValue)
 			port.WriteTimeout = hubOption.SendTimeoutMs.Value;
 
-		readThread = new Thread(() => {
+		readThread = new Thread(async () => {
 			while (!readCancellationTokenSource.IsCancellationRequested) {
 				try {
 					var line = port.ReadLine();
-
 					logger.LogDebug("{RECEIVE_PREFIX}{line}", RECEIVE_PREFIX, line);
 
 					var match = identifyResultRegex.Match(line);
@@ -90,15 +95,41 @@ public partial class HubRepl : IHubRepl {
 						}
 					}
 				}
+				catch (InvalidOperationException ex) {
+					try {
+						logger.LogError(ex, "RECEIVE failed: {Message}, will try to connect again in {time}ms ", ex.Message, hubOption.RetryDelayMs);
+						await Task.Delay(hubOption.RetryDelayMs);
+						port.Open();
+					}
+					catch (Exception reconnectEx) {
+						logger.LogError(reconnectEx, "Reconnect failed: {Message}", reconnectEx.Message);
+					}
+				}
 				catch (Exception ex) {
-					logger.LogError(ex, "RECEIVE failed: {Message}", ex.Message);
+					logger.LogError(ex, "RECEIVE failed: {Message}, will try to read again in {time}ms ", ex.Message, hubOption.RetryDelayMs);
+					await Task.Delay(hubOption.RetryDelayMs);
 				}
 			}
 		});
 	}
 
-	public async Task Connect() {
-		port.Open();
+	public async Task Connect(bool autoRetry = false) {
+		if (autoRetry) {
+			while (true) {
+				try {
+					port.Open();
+					break;
+				}
+				catch (Exception ex) {
+					logger.LogError(ex, "Open port failed: {message}, will try to open again in {time}ms", ex.Message, hubOption.RetryDelayMs);
+					await Task.Delay(hubOption.RetryDelayMs);
+				}
+			}
+		}
+		else {
+			port.Open();
+		}
+
 		readThread.Start();
 		await SendCode(CTRL_C);
 

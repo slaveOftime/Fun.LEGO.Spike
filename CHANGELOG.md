@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Enable auto retry for read and connect
+
 ## [0.0.2] - 2023-10-14
 
 - Refactor code to reduce HubRepl responsibility 

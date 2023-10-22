@@ -113,6 +113,7 @@ public partial class HubRepl : IHubRepl {
 		});
 	}
 
+	/// <inheritdoc/>
 	public async Task Connect(bool autoRetry = false) {
 		if (autoRetry) {
 			while (true) {
@@ -138,12 +139,14 @@ public partial class HubRepl : IHubRepl {
 		await SendCode("import motor, motor_pair");
 	}
 
+	/// <inheritdoc/>
 	public Task Disconnect() {
 		port.Close();
 		readCancellationTokenSource.Cancel();
 		return Task.CompletedTask;
 	}
 
+	/// <inheritdoc/>
 	public async Task SendCode(params string[] codes) {
 		foreach (var code in codes) {
 			switch (code) {
@@ -164,6 +167,7 @@ public partial class HubRepl : IHubRepl {
 		}
 	}
 
+	/// <inheritdoc/>
 	public async Task<string> SendCodeAndWaitResult(string code, int? cancellationInMs = null) {
 		var id = Random.Shared.Next();
 		var result = new TaskCompletionSource<string>();
@@ -186,7 +190,8 @@ public partial class HubRepl : IHubRepl {
 		try {
 			Disconnect();
 		}
-		catch (Exception) {
+		catch (Exception ex) {
+			logger.LogError(ex, "Dispose HubRepl failed: {message}", ex.Message);
 		}
 	}
 }
